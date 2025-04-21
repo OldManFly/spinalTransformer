@@ -120,33 +120,36 @@ class ViT(nn.Module):
         self.final_conv = nn.Conv3d(dim, num_classes, kernel_size=1)  # 修改這裡
 
     def forward(self, images):
-        b, h, w, d = images.shape
-        ph, pw, pd = self.patch_height, self.patch_width, self.patch_depth
 
-        # 手動實現 Rearrange
-        x = images.reshape(b, h // ph, ph, w // pw, pw, d // pd, pd)
-        x = x.permute(0, 2, 4, 6, 1, 3, 5)
-        x = x.reshape(b, (h // ph) * (w // pw) * (d // pd), 1 * ph * pw * pd)
+        self.to_patch_embedding(images)
 
-        x = self.to_patch_embedding(x)
-        b, n, _ = x.shape
+        # b, h, w, d = images.shape
+        # ph, pw, pd = self.patch_height, self.patch_width, self.patch_depth
 
-        cls_tokens = repeat(self.cls_token, '1 1 d -> b 1 d', b=b)
-        x = torch.cat((cls_tokens, x), dim=1)
-        x += self.pos_embedding[:, :(n + 1)]
-        x = self.dropout(x)
+        # # 手動實現 Rearrange
+        # x = images.reshape(b, h // ph, ph, w // pw, pw, d // pd, pd)
+        # x = x.permute(0, 2, 4, 6, 1, 3, 5)
+        # x = x.reshape(b, (h // ph) * (w // pw) * (d // pd), 1 * ph * pw * pd)
 
-        x = self.transformer(x)
+        # x = self.to_patch_embedding(x)
+        # b, n, _ = x.shape
 
-        x = x.mean(dim=1) if self.pool == 'mean' else x[:, 0]
+        # cls_tokens = repeat(self.cls_token, '1 1 d -> b 1 d', b=b)
+        # x = torch.cat((cls_tokens, x), dim=1)
+        # x += self.pos_embedding[:, :(n + 1)]
+        # x = self.dropout(x)
 
-        x = self.to_latent(x)
-        x = self.mlp_head(x)
+        # x = self.transformer(x)
 
-        x = x.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)  # Add spatial dims
-        x = self.upsample(x)
-        x = self.final_conv(x)  # Output shape: [b, num_classes, H, W, D]
-        return x
+        # x = x.mean(dim=1) if self.pool == 'mean' else x[:, 0]
+
+        # x = self.to_latent(x)
+        # x = self.mlp_head(x)
+
+        # x = x.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)  # Add spatial dims
+        # x = self.upsample(x)
+        # x = self.final_conv(x)  # Output shape: [b, num_classes, H, W, D]
+        # return x
     
 ##### Testing part  ######
 
@@ -176,11 +179,10 @@ if __name__ =='__main__':
         heads=heads,
         mlp_dim=mlp_dim,
         dropout=dropout,
-        emb_dropout=emb_dropout,
-        channels=1 # 根據您的影像通道數調整
+        emb_dropout=emb_dropout
     )
 
-    dummy_input = torch.randn(4, 1, 880, 880, 15)
+    dummy_input = torch.randn(4, 880, 880, 15)
     output = model(dummy_input)
     print(model)
     # print(output.shape) # 預期輸出 shape 為 (batch_size, num_classes)
