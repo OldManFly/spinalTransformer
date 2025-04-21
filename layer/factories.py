@@ -1,7 +1,7 @@
+from __future__ import annotations
 import warnings
-from collection.abc import Callable
+from collections.abc import Callable
 from typing import Any
-
 import torch.nn as nn
 
 
