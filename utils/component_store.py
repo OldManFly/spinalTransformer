@@ -38,3 +38,51 @@ class ComponentStore:
             return self.add(name, desc, func)
 
         return deco
+    
+    @property
+
+    def names(self) -> tuple[str, ...]:
+        """
+        Produces all factory names.
+        """
+        return tuple(self.components)
+
+    def __contains__(self, name: str) -> bool:
+        """Returns True if the given name is stored."""
+        return name in self.components
+
+    def __len__(self) -> int:
+        """Returns the number of stored components."""
+        return len(self.components)
+
+    def __iter__(self) -> Iterable:
+        """Yields name/component pairs."""
+        for k, v in self.components.items():
+            yield k, v.value
+
+    def __str__(self):
+        result = f"Component Store '{self.name}': {self.description}\nAvailable components:"
+        for k, v in self.components.items():
+            result += f"\n* {k}:"
+
+            if hasattr(v.value, "__doc__") and v.value.__doc__:
+                doc = indent(dedent(v.value.__doc__.lstrip("\n").rstrip()), "    ")
+                result += f"\n{doc}\n"
+            else:
+                result += f" {v.description}"
+
+        return result
+
+    def __getattr__(self, name: str) -> Any:
+        """Returns the stored object under the given name."""
+        if name in self.components:
+            return self.components[name].value
+        else:
+            return self.__getattribute__(name)
+
+    def __getitem__(self, name: str) -> Any:
+        """Returns the stored object under the given name."""
+        if name in self.components:
+            return self.components[name].value
+        else:
+            raise ValueError(f"Component '{name}' not found")
