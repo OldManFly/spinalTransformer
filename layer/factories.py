@@ -20,3 +20,8 @@ class layerFactory:
         self.name = name
         self.args = args
         self.kwargs = kwargs
+
+    def add_factory_callable():
+        """
+        Add the factory function to this object under the given name, with optional description. 
+        """
